@@ -1,0 +1,63 @@
+image: node:22.16.0
+
+pipelines:
+  default:
+    - step:
+        name: Build and Test
+        caches:
+          - node-deps
+          - node-cache
+        script:
+          # Install dependencies
+          - npm ci
+
+          # Run ESLint
+          - npm run lint
+
+          # Run TypeScript type check
+          - npm run type-check
+
+          # Build project
+          - npm run build
+
+          # Check code formatting
+          - npm run format:check
+
+  pull-requests:
+    "**":
+      - step:
+          name: Build and Test
+          caches:
+            - node-deps
+            - node-cache
+          script:
+            # Install dependencies
+            - npm ci
+
+            # Run ESLint
+            - npm run lint
+
+            # Run TypeScript type check
+            - npm run type-check
+
+            # Build project
+            - npm run build
+
+            # Check code formatting
+            - npm run format:check
+
+definitions:
+  caches:
+    node-deps:
+      key:
+        files:
+          - package-lock.json
+      max-size: 200MB
+      path: node_modules
+    node-cache:
+      key:
+        files:
+          - package-lock.json
+        prefix: cache
+      max-size: 100MB
+      path: .npm

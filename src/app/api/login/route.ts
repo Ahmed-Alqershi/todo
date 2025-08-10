@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import bcrypt from "bcryptjs";
+
+import prisma from "@/lib/prisma";
 import { signToken } from "@/lib/server/auth";
-import { findUser } from "@/lib/server/user-store";
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
-  const user = findUser(email);
-  if (!user || user.password !== password) {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || !(await bcrypt.compare(password, user.hashed_password))) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
   const token = signToken({ id: user.id, role: user.role });

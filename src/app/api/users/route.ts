@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import type { Role } from "@prisma/client";
+import bcrypt from "bcryptjs";
+
+import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/server/auth";
-import { getUsers, createUser, Role } from "@/lib/server/user-store";
 
 function getAuthUser(req: NextRequest) {
   const token = req.cookies.get("auth")?.value;
@@ -18,7 +21,8 @@ export async function GET(req: NextRequest) {
   if (!user || user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json(getUsers());
+  const users = await prisma.user.findMany();
+  return NextResponse.json(users);
 }
 
 export async function POST(req: NextRequest) {
@@ -27,10 +31,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const data = await req.json();
-  const newUser = createUser({
-    email: data.email,
-    password: data.password,
-    role: (data.role as Role) || "user",
+  const hashed = await bcrypt.hash(data.password, 10);
+  const newUser = await prisma.user.create({
+    data: {
+      email: data.email,
+      hashed_password: hashed,
+      role: (data.role as Role) || "user",
+    },
   });
   return NextResponse.json(newUser);
 }

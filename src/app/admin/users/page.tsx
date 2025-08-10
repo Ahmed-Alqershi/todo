@@ -2,8 +2,11 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { Role } from "@prisma/client";
+import bcrypt from "bcryptjs";
+
+import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/server/auth";
-import { getUsers, createUser, Role } from "@/lib/server/user-store";
 
 export default async function UsersPage() {
   const cookieStore = await cookies();
@@ -27,11 +30,14 @@ export default async function UsersPage() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const role = formData.get("role") as Role;
-    createUser({ email, password, role });
+    const hashed = await bcrypt.hash(password, 10);
+    await prisma.user.create({
+      data: { email, hashed_password: hashed, role },
+    });
     revalidatePath("/admin/users");
   }
 
-  const users = getUsers();
+  const users = await prisma.user.findMany();
 
   return (
     <div className="p-4">

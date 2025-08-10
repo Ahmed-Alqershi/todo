@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-import type { Role } from "./user-store";
+import type { Role } from "@prisma/client";
 
 const SECRET = process.env.AUTH_SECRET || "dev-secret";
 

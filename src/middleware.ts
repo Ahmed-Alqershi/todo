@@ -1,43 +1,43 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
-  const headers = new Headers(request.headers);
-  headers.set("x-current-path", request.nextUrl.pathname);
-  return NextResponse.next({ headers });
+import { verifyToken } from "@/lib/server/auth";
+
+function unauthorized(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/api")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  return NextResponse.redirect(new URL("/login", request.url));
 }
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const headers = new Headers(request.headers);
+  headers.set("x-current-path", pathname);
+
+  if (pathname.startsWith("/login") || pathname.startsWith("/api/login")) {
+    return NextResponse.next({ headers });
+  }
+
+  const token = request.cookies.get("auth")?.value;
+  if (!token) {
+    return unauthorized(request);
+  }
+  try {
+    const user = verifyToken(token);
+    if (pathname.startsWith("/admin") || pathname.startsWith("/api/users")) {
+      if (user.role !== "admin") {
+        return unauthorized(request);
+      }
+    }
+    return NextResponse.next({ headers });
+  } catch {
+    return unauthorized(request);
+  }
+}
+
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     */
-    {
-      source:
-        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
-      missing: [
-        { type: "header", key: "next-router-prefetch" },
-        { type: "header", key: "purpose", value: "prefetch" },
-      ],
-    },
-
-    {
-      source:
-        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
-      has: [
-        { type: "header", key: "next-router-prefetch" },
-        { type: "header", key: "purpose", value: "prefetch" },
-      ],
-    },
-
-    {
-      source:
-        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
-      has: [{ type: "header", key: "x-present" }],
-      missing: [{ type: "header", key: "x-missing", value: "prefetch" }],
-    },
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
   ],
 };

@@ -1,33 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import type { Role } from "@prisma/client";
-import bcrypt from "bcryptjs";
-
 import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/server/auth";
 
 export async function GET(req: NextRequest) {
   const user = await getAuthUser(req);
-  if (!user || user.role !== "admin") {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const users = await prisma.user.findMany();
-  return NextResponse.json(users);
+  const projects = await prisma.project.findMany({ where: { user_id: user.id } });
+  return NextResponse.json(projects);
 }
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser(req);
-  if (!user || user.role !== "admin") {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const data = await req.json();
-  const hashed = await bcrypt.hash(data.password, 10);
-  const newUser = await prisma.user.create({
+  const project = await prisma.project.create({
     data: {
-      email: data.email,
-      hashed_password: hashed,
-      role: (data.role as Role) || "user",
+      title: data.title,
+      description: data.description,
+      user_id: user.id,
     },
   });
-  return NextResponse.json(newUser);
+  return NextResponse.json(project);
 }

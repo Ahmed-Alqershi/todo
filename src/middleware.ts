@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
   const headers = new Headers(request.headers);
   headers.set("x-current-path", pathname);
 
-  if (pathname.startsWith("/login") || pathname.startsWith("/api/login")) {
+  if (pathname.startsWith("/login") || pathname.startsWith("/api/auth")) {
     return NextResponse.next({ headers });
   }
 

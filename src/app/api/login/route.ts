@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   if (!user || !(await bcrypt.compare(password, user.hashed_password))) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
-  const token = signToken({ id: user.id, role: user.role });
+  const token = await signToken({ id: user.id, role: user.role });
   const res = NextResponse.json({ ok: true });
   res.cookies.set("auth", token, { httpOnly: true, path: "/" });
   return res;

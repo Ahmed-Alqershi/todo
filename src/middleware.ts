@@ -10,7 +10,7 @@ function unauthorized(request: NextRequest) {
   return NextResponse.redirect(new URL("/login", request.url));
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const headers = new Headers(request.headers);
   headers.set("x-current-path", pathname);
@@ -24,7 +24,7 @@ export function middleware(request: NextRequest) {
     return unauthorized(request);
   }
   try {
-    const user = verifyToken(token);
+    const user = await verifyToken(token);
     if (pathname.startsWith("/admin") || pathname.startsWith("/api/users")) {
       if (user.role !== "admin") {
         return unauthorized(request);

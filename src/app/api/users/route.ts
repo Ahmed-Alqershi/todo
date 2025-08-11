@@ -6,18 +6,18 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/server/auth";
 
-function getAuthUser(req: NextRequest) {
+async function getAuthUser(req: NextRequest) {
   const token = req.cookies.get("auth")?.value;
   if (!token) return null;
   try {
-    return verifyToken(token);
+    return await verifyToken(token);
   } catch {
     return null;
   }
 }
 
 export async function GET(req: NextRequest) {
-  const user = getAuthUser(req);
+  const user = await getAuthUser(req);
   if (!user || user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const user = getAuthUser(req);
+  const user = await getAuthUser(req);
   if (!user || user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

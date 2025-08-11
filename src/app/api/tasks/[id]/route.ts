@@ -8,7 +8,7 @@ export async function PUT(
   { params }: { params: { id: string } },
 ) {
   const user = await getAuthUser(req);
-  if (!user) {
+  if (!user || user.role !== "user") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const exists = await prisma.task.findFirst({
@@ -38,7 +38,7 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   const user = await getAuthUser(req);
-  if (!user) {
+  if (!user || user.role !== "user") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const exists = await prisma.task.findFirst({

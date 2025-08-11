@@ -32,6 +32,8 @@ export async function DELETE(
   if (!auth || auth.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  await prisma.task.deleteMany({ where: { user_id: params.id } });
+  await prisma.project.deleteMany({ where: { user_id: params.id } });
   await prisma.user.delete({ where: { id: params.id } });
   return NextResponse.json({ ok: true });
 }

@@ -19,7 +19,12 @@ export default function LoginPage() {
       credentials: "include",
     });
     if (res.ok) {
-      router.push("/");
+      const data = await res.json();
+      if (data.role === "admin") {
+        router.push("/admin/users");
+      } else {
+        router.push("/dashboard");
+      }
     } else {
       setError("Invalid credentials");
     }

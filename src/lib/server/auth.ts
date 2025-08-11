@@ -1,3 +1,5 @@
+import type { NextRequest } from "next/server";
+
 import type { Role } from "@prisma/client";
 
 const SECRET = process.env.AUTH_SECRET || "dev-secret";
@@ -68,4 +70,16 @@ export async function verifyToken(
   }
   const payload = JSON.parse(decoder.decode(base64urlDecode(bodyB64)));
   return payload;
+}
+
+export async function getAuthUser(
+  req: NextRequest,
+): Promise<{ id: string; role: Role } | null> {
+  const token = req.cookies.get("auth")?.value;
+  if (!token) return null;
+  try {
+    return await verifyToken(token);
+  } catch {
+    return null;
+  }
 }

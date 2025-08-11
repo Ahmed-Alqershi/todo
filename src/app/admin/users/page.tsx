@@ -14,7 +14,7 @@ export default async function UsersPage() {
   if (!token) redirect("/login");
   let currentUser;
   try {
-    currentUser = verifyToken(token);
+    currentUser = await verifyToken(token);
   } catch {
     redirect("/login");
   }
@@ -25,7 +25,7 @@ export default async function UsersPage() {
     const cookieStore = await cookies();
     const token = cookieStore.get("auth")?.value;
     if (!token) return;
-    const user = verifyToken(token);
+    const user = await verifyToken(token);
     if (user.role !== "admin") return;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;

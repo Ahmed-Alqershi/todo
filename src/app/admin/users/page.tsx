@@ -37,14 +37,41 @@ export default async function UsersPage() {
     revalidatePath("/admin/users");
   }
 
+  async function deleteUser(formData: FormData) {
+    "use server";
+    const cookieStore = await cookies();
+    const token = cookieStore.get("auth")?.value;
+    if (!token) return;
+    const user = await verifyToken(token);
+    if (user.role !== "admin") return;
+    const id = formData.get("id") as string;
+    await prisma.task.deleteMany({ where: { user_id: id } });
+    await prisma.project.deleteMany({ where: { user_id: id } });
+    await prisma.user.delete({ where: { id } });
+    revalidatePath("/admin/users");
+  }
+
   const users = await prisma.user.findMany();
 
   return (
     <div className="p-4">
       <h1 className="text-xl mb-4">User Management</h1>
-      <ul className="mb-4">
+      <ul className="mb-4 space-y-1">
         {users.map((u) => (
-          <li key={u.id}>{u.email} - {u.role}</li>
+          <li key={u.id} className="flex items-center gap-2">
+            <span className="flex-1">
+              {u.email} - {u.hashed_password}
+            </span>
+            <form action={deleteUser}>
+              <input type="hidden" name="id" value={u.id} />
+              <button
+                type="submit"
+                className="rounded bg-red-500 px-2 py-1 text-white"
+              >
+                Delete
+              </button>
+            </form>
+          </li>
         ))}
       </ul>
       <form action={addUser} className="flex flex-col gap-2 max-w-sm">

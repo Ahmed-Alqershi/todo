@@ -30,6 +30,16 @@ export async function middleware(request: NextRequest) {
         return unauthorized(request);
       }
     }
+    if (
+      pathname.startsWith("/dashboard") ||
+      pathname.startsWith("/projects") ||
+      pathname.startsWith("/api/projects") ||
+      pathname.startsWith("/api/tasks")
+    ) {
+      if (user.role !== "user") {
+        return unauthorized(request);
+      }
+    }
     return NextResponse.next({ headers });
   } catch {
     return unauthorized(request);

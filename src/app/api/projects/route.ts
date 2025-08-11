@@ -5,7 +5,7 @@ import { getAuthUser } from "@/lib/server/auth";
 
 export async function GET(req: NextRequest) {
   const user = await getAuthUser(req);
-  if (!user) {
+  if (!user || user.role !== "user") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const projects = await prisma.project.findMany({ where: { user_id: user.id } });
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser(req);
-  if (!user) {
+  if (!user || user.role !== "user") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const data = await req.json();

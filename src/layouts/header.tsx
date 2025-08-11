@@ -1,15 +1,13 @@
+/* eslint-disable import/order */
 import { headers } from "next/headers";
-
 import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@/lib/utils";
-
+import Breadcrumbs from "@/components/breadcrumbs";
+import LogoutButton from "@/components/logout-button";
 import { Separator } from "@/components/ui/separator";
-
 import SidebarTrigger from "@/layouts/sidebar-trigger";
 import ThemeSwitcher from "@/layouts/theme-switcher";
-
-import Breadcrumbs from "@/components/breadcrumbs";
+import { cn } from "@/lib/utils";
 
 const headerVariants = cva("h-16 flex items-center gap-2", {
   variants: {
@@ -72,8 +70,9 @@ const Header = async ({
         <SidebarTrigger />
         <Separator orientation="vertical" className="me-2" />
         <Breadcrumbs pathname={pathname} />
-        <div className="ms-auto">
+        <div className="ms-auto flex items-center gap-2">
           <ThemeSwitcher />
+          <LogoutButton />
         </div>
       </div>
     </header>
